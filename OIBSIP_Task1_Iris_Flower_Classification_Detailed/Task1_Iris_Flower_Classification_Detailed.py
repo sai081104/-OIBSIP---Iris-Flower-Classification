@@ -1,48 +1,56 @@
-# 🌸 Task 1: Iris Flower Classification - OIBSIP Data Science Internship
+# Iris Flower Classification - OIBSIP Data Science Task
 
-# This project uses a machine learning model to classify Iris flowers into
-# three species based on their petal and sepal dimensions.
-
-# ✅ Libraries
+# Import libraries
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 
-# ✅ Step 1: Load the dataset
-# The dataset includes 150 samples with 4 features: 
-# sepal length, sepal width, petal length, petal width
-# and a label: species (Setosa, Versicolor, Virginica)
+# Load the dataset
+data = pd.read_csv("Iris.csv")
 
-df = pd.read_csv("https://raw.githubusercontent.com/amankharwal/Website-data/master/IRIS.csv")
+# Display first 5 rows
+print("Dataset Preview:\n", data.head())
 
-# ✅ Step 2: Display first few rows
-print("Sample data:")
-print(df.head())
+# Data Preprocessing
+# Drop 'Id' column
+data = data.drop("Id", axis=1)
 
-# ✅ Step 3: Define features (X) and labels (y)
-X = df.drop("species", axis=1)  # input features
-y = df["species"]               # output labels
+# Check for missing values
+print("\nMissing values:\n", data.isnull().sum())
 
-# ✅ Step 4: Split data into training and test sets
-# 80% training, 20% testing
+# Encode target labels
+label_encoder = LabelEncoder()
+data["Species"] = label_encoder.fit_transform(data["Species"])
+
+# Feature and target variables
+X = data.drop("Species", axis=1)
+y = data["Species"]
+
+# Split dataset into training and testing sets (80-20 split)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# ✅ Step 5: Train the model
-# Using Random Forest Classifier for better accuracy
-model = RandomForestClassifier()
+# Train the model using Random Forest Classifier
+model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
-# ✅ Step 6: Make predictions on the test set
-predictions = model.predict(X_test)
+# Make predictions
+y_pred = model.predict(X_test)
 
-# ✅ Step 7: Evaluate the model
-accuracy = accuracy_score(y_test, predictions)
-print("\nModel Accuracy:", accuracy)
+# Model Evaluation
+accuracy = accuracy_score(y_test, y_pred)
+print(f"\nModel Accuracy: {accuracy * 100:.2f}%")
 
-# ✅ Step 8: View predictions (optional)
-print("\nPredicted labels:")
-print(predictions)
+# Confusion Matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+sns.heatmap(conf_matrix, annot=True, cmap="Blues", fmt="d", xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_)
+plt.title("Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
 
-print("\nActual labels:")
-print(list(y_test.values))
+# Classification Report
+print("\nClassification Report:\n", classification_report(y_test, y_pred, target_names=label_encoder.classes_))
